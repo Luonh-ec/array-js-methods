@@ -1,17 +1,28 @@
-import {FlatList, StyleSheet, Text, TextInput, View} from 'react-native';
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import React, {useState} from 'react';
 import ButtonMethod from '../../components/buttonMethod';
 
+let i = 0;
 const IterationMethodsScreen = () => {
+  console.log('main component load lan thu: ', i);
+  i++;
+
   const [currentMethod, setcurrentMedthod] = useState('');
   const [array, setArray] = useState<any[]>([]);
   const [result, setResult] = useState<any[]>([]);
-
+  const [newName, setNewName] = useState('');
+  const [idInput, setIdInput] = useState('');
   const methods = [
     {
       id: '1',
       name: 'map',
-      deps: 'Thực hiện một hàm callback cho mỗi phần tử trong mảng.',
     },
     {id: '2', name: 'flatMap'},
     {id: '3', name: 'filter'},
@@ -23,6 +34,25 @@ const IterationMethodsScreen = () => {
     {id: '9', name: 'keys'},
     {id: '10', name: 'entries'},
   ];
+
+  const [listmethods, setMethods] =
+    useState<{id: string; name: string}[]>(methods);
+
+  const methodsState = methods.map(method => ({
+    id: method.id,
+    status: false,
+  }));
+
+  const [ismethodClicked, setMethodClicked] =
+    useState<{id: string; status: boolean}[]>(methodsState);
+
+  // const updateState = () => {
+  //   const methodsStateUpdate = [ismethodClicked.shift()];
+  //   setMethodClicked(methodsStateUpdate);
+  // };
+
+  // updateState();
+
   const handleArrInput = (value: string) => {
     const arrString = value.split(',').map(item => item.trim());
     const numericArray = arrString.flatMap(item =>
@@ -31,32 +61,90 @@ const IterationMethodsScreen = () => {
     setArray(numericArray.filter(num => !isNaN(num)));
   };
 
-  const handleMethodSubmit = () => {
-    setResult(array.map(item => item * 2));
+  //  console.log(ismethodClicked);
+
+  const handleMethodSubmit = (id: string) => {
+    setMethodClicked(prevState => {
+      return prevState.map((item, index) => {
+        if (index === parseInt(id) - 1) {
+          return {
+            ...item,
+            status: !ismethodClicked[parseInt(item.id) - 1].status,
+          };
+        } else {
+          return item;
+        }
+      });
+    });
   };
 
-  console.log(result);
+  const onChangeName = (value: string) => {
+    setNewName(value);
+  };
+
+  const onChangeIdInput = (value: string) => {
+    setIdInput(value);
+  };
+
+  const handleChangeMethodName = (id: string) => {
+    setMethods(prevState => {
+      return prevState.map((item, index) => {
+        if (index === parseInt(id) - 1) {
+          return {
+            ...item,
+            name: newName,
+          };
+        } else {
+          console.log(item, '**************');
+          return item;
+        }
+      });
+    });
+  };
+
+  console.log(listmethods[0]);
 
   return (
     <View style={styles.container}>
       <View>
         <TextInput
+          keyboardType="numeric"
           style={styles.input}
-          placeholder="Enter array"
+          placeholder="Enter id"
           onBlur={text => handleArrInput(text.nativeEvent.text)}
+          onChangeText={text => onChangeIdInput(text)}
         />
-        <TextInput style={styles.input} placeholder="Enter array" />
+        <TextInput
+          style={styles.input}
+          placeholder="Enter name"
+          onChangeText={text => onChangeName(text)}
+        />
       </View>
       <View style={styles.result}>
         <Text>{result}</Text>
       </View>
+      <TouchableOpacity
+        onPress={() => handleChangeMethodName(idInput)}
+        style={{
+          alignItems: 'center',
+          padding: 20,
+          backgroundColor: 'grey',
+          margin: 20,
+          borderRadius: 10,
+        }}>
+        <Text>Submit change</Text>
+      </TouchableOpacity>
       <View style={styles.list}>
         <FlatList
-          data={methods}
+          data={listmethods}
           numColumns={2}
           keyExtractor={item => item.id}
           renderItem={({item}) => (
-            <ButtonMethod method={item} onPress={handleMethodSubmit} />
+            <ButtonMethod
+              method={item}
+              onPress={handleMethodSubmit}
+              buttonClicked={ismethodClicked[parseInt(item.id) - 1].status}
+            />
           )}
         />
       </View>
