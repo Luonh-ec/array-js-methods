@@ -1,3 +1,5 @@
+// ... (các import và state khác)
+import React, {useEffect, useState, useCallback} from 'react';
 import {
   FlatList,
   StyleSheet,
@@ -6,86 +8,84 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
 import ButtonMethod from '../../components/buttonMethod';
 import randomObjectsArray from '../../assets/data';
 
 let i = 0;
+
 const IterationMethodsScreen = () => {
   console.log('main component load lan thu: ', i);
   i++;
-
-  const [array, setArray] = useState<any[]>([]);
-  const [result, setResult] = useState<any[]>([]);
-  const [newName, setNewName] = useState('');
-  const [idInput, setIdInput] = useState('');
-
-  const [listData, setData] =
-    useState<{id: string; name: string}[]>(randomObjectsArray);
 
   const DataState = randomObjectsArray.map(item => ({
     id: item.id,
     status: false,
   }));
 
-  const [ItemClicked, setItemClicked] =
-    useState<{id: string; status: boolean}[]>(DataState);
+  const [newName, setNewName] = useState('');
+  const [idInput, setIdInput] = useState('');
+  const [listData, setData] =
+    useState<{id: string; name: string}[]>(randomObjectsArray);
+  const [ItemClicked, setItemClicked] = useState<
+    {
+      id: string;
+      status: boolean;
+    }[]
+  >(DataState);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [nameError, setNameError] = useState<boolean>(false);
 
-  const handleArrInput = (value: string) => {
-    const arrString = value.split(',').map(item => item.trim());
-    const numericArray = arrString.flatMap(item =>
-      item.split(' ').map(num => parseFloat(num.trim())),
+  const handleMethodSubmit = useCallback((id: string) => {
+    setItemClicked(prevItemClicked =>
+      prevItemClicked.map(item => ({
+        ...item,
+        status: item.id === id ? !item.status : false,
+      })),
     );
-    setArray(numericArray.filter(num => !isNaN(num)));
-  };
+    setSelectedItemId(id);
+  }, []);
 
-  const handleMethodSubmit = (id: string) => {
-    setItemClicked(prevState => {
-      return prevState.map(item => {
-        if (item.id === id) {
-          return {
-            ...item,
-            status: !item.status,
-          };
-        } else {
-          return item;
-        }
-      });
-    });
-  };
-
-  const onChangeName = (value: string) => {
+  const onChangeName = useCallback((value: string) => {
     setNewName(value);
-  };
+  }, []);
 
-  const onChangeIdInput = (value: string) => {
+  const onChangeIdInput = useCallback((value: string) => {
     setIdInput(value);
-  };
+  }, []);
 
-  const handleChangeMethodName = (id: string) => {
-    setData(prevState => {
-      return prevState.map(item => {
-        if (item.id === id) {
-          return {
-            ...item,
-            name: newName,
-          };
-        } else {
-          return item;
-        }
-      });
-    });
-  };
+  const handleChangeMethodName = useCallback(
+    (id: string) => {
+      setData(prevState =>
+        prevState.map(item =>
+          item.id === id ? {...item, name: newName} : item,
+        ),
+      );
+    },
+    [newName],
+  );
 
-  const handleButtonClicked = (id: string) => {
-    let result = false;
-    ItemClicked.map(item => {
-      if (item.id === id) {
-        result = item.status;
-      }
-    });
-    return result;
-  };
+  const handleButtonClicked = useCallback(
+    (id: string) => {
+      return ItemClicked.find(item => item.id === id)?.status || false;
+    },
+    [ItemClicked],
+  );
+
+  useEffect(() => {
+    const isValidName = /^[a-zA-Z\s]*$/.test(newName);
+    setNameError(!isValidName || newName.trim() === '');
+  }, [newName]);
+
+  const renderItem = useCallback(
+    ({item}) => (
+      <ButtonMethod
+        method={item}
+        onPress={() => handleMethodSubmit(item.id)}
+        buttonClicked={handleButtonClicked(item.id)}
+      />
+    ),
+    [handleMethodSubmit, handleButtonClicked],
+  );
 
   return (
     <View style={styles.container}>
@@ -94,7 +94,6 @@ const IterationMethodsScreen = () => {
           keyboardType="numeric"
           style={styles.input}
           placeholder="Enter id"
-          onBlur={text => handleArrInput(text.nativeEvent.text)}
           onChangeText={text => onChangeIdInput(text)}
         />
         <TextInput
@@ -104,17 +103,20 @@ const IterationMethodsScreen = () => {
         />
       </View>
       <View style={styles.result}>
-        <Text>{result}</Text>
+        {nameError && newName != '' && (
+          <Text>Name should not contain numbers or special characters.</Text>
+        )}
       </View>
       <TouchableOpacity
         onPress={() => handleChangeMethodName(idInput)}
         style={{
           alignItems: 'center',
           padding: 20,
-          backgroundColor: 'grey',
+          backgroundColor: nameError ? 'gray' : 'green',
           margin: 20,
           borderRadius: 10,
-        }}>
+        }}
+        disabled={nameError}>
         <Text>Submit change</Text>
       </TouchableOpacity>
       <View style={styles.list}>
@@ -122,28 +124,12 @@ const IterationMethodsScreen = () => {
           data={listData}
           numColumns={2}
           keyExtractor={item => item.id}
-          renderItem={({item}) => (
-            <ButtonMethod
-              method={item}
-              onPress={handleMethodSubmit}
-              buttonClicked={handleButtonClicked(item.id)}
-            />
-          )}
+          renderItem={renderItem}
         />
       </View>
     </View>
   );
 };
-
-// đổi sang dùng id
-// tăng lên tầm 100 item
-// chọn item khác item cũ trở lại mặc định
-// insert dữ liệu (submit thêm 1 item)
-// click sửa item
-// validation không là chữ số không có ký tự đặc biệt/ enable submit
-// khi không có error
-// option của onpress on long press
-// kết hợp hook để tránh reload các buttton không cần thiết
 
 export default IterationMethodsScreen;
 
@@ -151,9 +137,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  list: {
-    paddingBottom: 100,
-  },
+  list: {},
   input: {
     margin: 20,
     height: 40,
