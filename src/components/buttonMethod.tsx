@@ -11,19 +11,14 @@ interface ButtonMethodProps {
   buttonClicked?: boolean;
 }
 
-let i = 0;
-
 const ButtonMethod = ({method, onPress, buttonClicked}: ButtonMethodProps) => {
+  console.log(method.id);
+
   const b = () => {
     if (onPress) {
       onPress(method.id);
     }
   };
-
-  // console.log('component button load: ', i);
-  // console.log(buttonClicked);
-
-  // i++;
 
   return (
     <View style={styles.container}>

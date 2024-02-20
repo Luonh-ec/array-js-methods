@@ -8,50 +8,28 @@ import {
 } from 'react-native';
 import React, {useState} from 'react';
 import ButtonMethod from '../../components/buttonMethod';
+import randomObjectsArray from '../../assets/data';
 
 let i = 0;
 const IterationMethodsScreen = () => {
   console.log('main component load lan thu: ', i);
   i++;
 
-  const [currentMethod, setcurrentMedthod] = useState('');
   const [array, setArray] = useState<any[]>([]);
   const [result, setResult] = useState<any[]>([]);
   const [newName, setNewName] = useState('');
   const [idInput, setIdInput] = useState('');
-  const methods = [
-    {
-      id: '1',
-      name: 'map',
-    },
-    {id: '2', name: 'flatMap'},
-    {id: '3', name: 'filter'},
-    {id: '4', name: 'reduce'},
-    {id: '5', name: 'reduceRight'},
-    {id: '6', name: 'every'},
-    {id: '7', name: 'some'},
-    {id: '8', name: 'from'},
-    {id: '9', name: 'keys'},
-    {id: '10', name: 'entries'},
-  ];
 
-  const [listmethods, setMethods] =
-    useState<{id: string; name: string}[]>(methods);
+  const [listData, setData] =
+    useState<{id: string; name: string}[]>(randomObjectsArray);
 
-  const methodsState = methods.map(method => ({
-    id: method.id,
+  const DataState = randomObjectsArray.map(item => ({
+    id: item.id,
     status: false,
   }));
 
-  const [ismethodClicked, setMethodClicked] =
-    useState<{id: string; status: boolean}[]>(methodsState);
-
-  // const updateState = () => {
-  //   const methodsStateUpdate = [ismethodClicked.shift()];
-  //   setMethodClicked(methodsStateUpdate);
-  // };
-
-  // updateState();
+  const [ItemClicked, setItemClicked] =
+    useState<{id: string; status: boolean}[]>(DataState);
 
   const handleArrInput = (value: string) => {
     const arrString = value.split(',').map(item => item.trim());
@@ -61,15 +39,13 @@ const IterationMethodsScreen = () => {
     setArray(numericArray.filter(num => !isNaN(num)));
   };
 
-  //  console.log(ismethodClicked);
-
   const handleMethodSubmit = (id: string) => {
-    setMethodClicked(prevState => {
-      return prevState.map((item, index) => {
-        if (index === parseInt(id) - 1) {
+    setItemClicked(prevState => {
+      return prevState.map(item => {
+        if (item.id === id) {
           return {
             ...item,
-            status: !ismethodClicked[parseInt(item.id) - 1].status,
+            status: !item.status,
           };
         } else {
           return item;
@@ -87,22 +63,29 @@ const IterationMethodsScreen = () => {
   };
 
   const handleChangeMethodName = (id: string) => {
-    setMethods(prevState => {
-      return prevState.map((item, index) => {
-        if (index === parseInt(id) - 1) {
+    setData(prevState => {
+      return prevState.map(item => {
+        if (item.id === id) {
           return {
             ...item,
             name: newName,
           };
         } else {
-          console.log(item, '**************');
           return item;
         }
       });
     });
   };
 
-  console.log(listmethods[0]);
+  const handleButtonClicked = (id: string) => {
+    let result = false;
+    ItemClicked.map(item => {
+      if (item.id === id) {
+        result = item.status;
+      }
+    });
+    return result;
+  };
 
   return (
     <View style={styles.container}>
@@ -136,14 +119,14 @@ const IterationMethodsScreen = () => {
       </TouchableOpacity>
       <View style={styles.list}>
         <FlatList
-          data={listmethods}
+          data={listData}
           numColumns={2}
           keyExtractor={item => item.id}
           renderItem={({item}) => (
             <ButtonMethod
               method={item}
               onPress={handleMethodSubmit}
-              buttonClicked={ismethodClicked[parseInt(item.id) - 1].status}
+              buttonClicked={handleButtonClicked(item.id)}
             />
           )}
         />
@@ -152,13 +135,25 @@ const IterationMethodsScreen = () => {
   );
 };
 
+// đổi sang dùng id
+// tăng lên tầm 100 item
+// chọn item khác item cũ trở lại mặc định
+// insert dữ liệu (submit thêm 1 item)
+// click sửa item
+// validation không là chữ số không có ký tự đặc biệt/ enable submit
+// khi không có error
+// option của onpress on long press
+// kết hợp hook để tránh reload các buttton không cần thiết
+
 export default IterationMethodsScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  list: {},
+  list: {
+    paddingBottom: 100,
+  },
   input: {
     margin: 20,
     height: 40,
