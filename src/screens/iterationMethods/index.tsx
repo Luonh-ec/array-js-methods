@@ -1,6 +1,5 @@
-// ... (các import và state khác)
-import React, {useEffect, useState, useCallback} from 'react';
 import {
+  Alert,
   FlatList,
   StyleSheet,
   Text,
@@ -8,11 +7,18 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import React, {useEffect, useState, useCallback, memo} from 'react';
 import ButtonMethod from '../../components/buttonMethod';
 import randomObjectsArray from '../../assets/data';
 
+interface Data {
+  id: string;
+  name: string;
+}
+
 let i = 0;
 
+const MemoizedButtonMethod = memo(ButtonMethod);
 const IterationMethodsScreen = () => {
   console.log('main component load lan thu: ', i);
   i++;
@@ -24,29 +30,40 @@ const IterationMethodsScreen = () => {
 
   const [newName, setNewName] = useState('');
   const [idInput, setIdInput] = useState('');
+  const [itemChange, setItemChange] = useState<{id: string; name: string}>();
   const [listData, setData] =
     useState<{id: string; name: string}[]>(randomObjectsArray);
-  const [ItemClicked, setItemClicked] = useState<
-    {
-      id: string;
-      status: boolean;
-    }[]
-  >(DataState);
+  const [ItemClicked, setItemClicked] =
+    useState<{id: string; status: boolean}[]>(DataState);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [nameError, setNameError] = useState<boolean>(false);
 
-  const handleMethodSubmit = useCallback((id: string) => {
-    setItemClicked(prevItemClicked =>
-      prevItemClicked.map(item => ({
-        ...item,
-        status: item.id === id ? !item.status : false,
-      })),
-    );
-    setSelectedItemId(id);
-  }, []);
+  // const handleMethodSubmit = useCallback((id: string) => {
+  //   setItemClicked(prevItemClicked =>
+  //     prevItemClicked.map(item => ({
+  //       ...item,
+  //       status: item.id === id ? !item.status : false,
+  //     })),
+  //   );
+  //   setSelectedItemId(id);
+  // }, []);
+
+  const handleMethodSubmit = (id: string) => {
+    const selectedItem = listData.find(item => item.id === id);
+    if (selectedItem) {
+      setItemChange({id: selectedItem.id, name: selectedItem.name});
+    } else {
+      Alert.alert('Không tìm thấy error');
+    }
+  };
 
   const onChangeName = useCallback((value: string) => {
-    setNewName(value);
+    setItemChange(prevState => {
+      if (prevState) {
+        return {...prevState, name: value};
+      }
+      return {id: '', name: value};
+    });
   }, []);
 
   const onChangeIdInput = useCallback((value: string) => {
@@ -57,11 +74,11 @@ const IterationMethodsScreen = () => {
     (id: string) => {
       setData(prevState =>
         prevState.map(item =>
-          item.id === id ? {...item, name: newName} : item,
+          item.id === id ? {...item, name: itemChange?.name || ''} : item,
         ),
       );
     },
-    [newName],
+    [itemChange],
   );
 
   const handleButtonClicked = useCallback(
@@ -72,13 +89,13 @@ const IterationMethodsScreen = () => {
   );
 
   useEffect(() => {
-    const isValidName = /^[a-zA-Z\s]*$/.test(newName);
-    setNameError(!isValidName || newName.trim() === '');
-  }, [newName]);
+    const isValidName = /^[a-zA-Z\s]*$/.test(itemChange?.name || '');
+    setNameError(!isValidName || itemChange?.name.trim() === '');
+  }, [itemChange]);
 
   const renderItem = useCallback(
     ({item}) => (
-      <ButtonMethod
+      <MemoizedButtonMethod
         method={item}
         onPress={() => handleMethodSubmit(item.id)}
         buttonClicked={handleButtonClicked(item.id)}
@@ -95,20 +112,22 @@ const IterationMethodsScreen = () => {
           style={styles.input}
           placeholder="Enter id"
           onChangeText={text => onChangeIdInput(text)}
+          value={itemChange?.id}
         />
         <TextInput
           style={styles.input}
           placeholder="Enter name"
           onChangeText={text => onChangeName(text)}
+          value={itemChange?.name}
         />
       </View>
       <View style={styles.result}>
-        {nameError && newName != '' && (
+        {nameError && itemChange?.name !== '' && (
           <Text>Name should not contain numbers or special characters.</Text>
         )}
       </View>
       <TouchableOpacity
-        onPress={() => handleChangeMethodName(idInput)}
+        onPress={() => handleChangeMethodName(itemChange?.id || '')}
         style={{
           alignItems: 'center',
           padding: 20,
