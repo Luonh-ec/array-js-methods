@@ -1,6 +1,7 @@
 import {Alert, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React, {memo} from 'react';
 
+// coi lại lỗi, lý do re-render
 interface Method {
   id: string;
   name: string;
@@ -12,7 +13,11 @@ interface ButtonMethodProps {
   buttonClicked?: boolean;
 }
 
+let i = 0;
 const ButtonMethod = ({method, onPress, buttonClicked}: ButtonMethodProps) => {
+  console.log(i);
+  i++;
+
   const handlePress = () => {
     if (onPress) {
       onPress(method.id);

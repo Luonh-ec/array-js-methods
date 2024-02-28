@@ -104,6 +104,12 @@ const IterationMethodsScreen = () => {
     [handleMethodSubmit, handleButtonClicked],
   );
 
+  const handleKey = useCallback(
+    item => item.id,
+
+    [],
+  );
+
   return (
     <View style={styles.container}>
       <View>
@@ -142,7 +148,7 @@ const IterationMethodsScreen = () => {
         <FlatList
           data={listData}
           numColumns={2}
-          keyExtractor={item => item.id}
+          keyExtractor={handleKey}
           renderItem={renderItem}
         />
       </View>
@@ -150,7 +156,7 @@ const IterationMethodsScreen = () => {
   );
 };
 
-export default IterationMethodsScreen;
+export default memo(IterationMethodsScreen);
 
 const styles = StyleSheet.create({
   container: {
