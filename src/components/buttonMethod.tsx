@@ -2,25 +2,24 @@ import {Alert, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import React, {memo} from 'react';
 
 // coi lại lỗi, lý do re-render
-interface Method {
+interface ButtonAny {
+  index: Int16Array;
   id: string;
   name: string;
 }
 
-interface ButtonMethodProps {
-  method: Method;
+interface ButtonAnyProps {
+  data: ButtonAny;
   onPress?: (id: string) => void;
   buttonClicked?: boolean;
 }
 
-let i = 0;
-const ButtonMethod = ({method, onPress, buttonClicked}: ButtonMethodProps) => {
-  console.log(i);
-  i++;
+const ButtonMethod = ({data, onPress, buttonClicked}: ButtonAnyProps) => {
+  console.log(data.index);
 
   const handlePress = () => {
     if (onPress) {
-      onPress(method.id);
+      onPress(data.id);
     }
   };
 
@@ -29,7 +28,7 @@ const ButtonMethod = ({method, onPress, buttonClicked}: ButtonMethodProps) => {
       <TouchableOpacity
         style={[styles.button, buttonClicked && styles.buttonClicked]}
         onPress={handlePress}>
-        <Text>{method.name}</Text>
+        <Text>{data.name}</Text>
       </TouchableOpacity>
     </View>
   );

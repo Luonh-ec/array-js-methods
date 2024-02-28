@@ -18,6 +18,7 @@ function createRandomObjectsArray(numObjects: number) {
   const objectsArray = [];
   for (let i = 0; i < numObjects; i++) {
     const randomObject = {
+      index: i,
       id: generateRandomId(),
       name: generateRandomString(),
     };

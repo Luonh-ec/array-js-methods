@@ -11,24 +11,14 @@ import React, {useEffect, useState, useCallback, memo} from 'react';
 import ButtonMethod from '../../components/buttonMethod';
 import randomObjectsArray from '../../assets/data';
 
-interface Data {
-  id: string;
-  name: string;
-}
+const DataState = randomObjectsArray.map(item => ({
+  id: item.id,
+  status: false,
+}));
 
-let i = 0;
-
-const MemoizedButtonMethod = memo(ButtonMethod);
 const IterationMethodsScreen = () => {
-  console.log('main component load lan thu: ', i);
-  i++;
+  console.log('main component reload');
 
-  const DataState = randomObjectsArray.map(item => ({
-    id: item.id,
-    status: false,
-  }));
-
-  const [newName, setNewName] = useState('');
   const [idInput, setIdInput] = useState('');
   const [itemChange, setItemChange] = useState<{id: string; name: string}>();
   const [listData, setData] =
@@ -48,14 +38,14 @@ const IterationMethodsScreen = () => {
   //   setSelectedItemId(id);
   // }, []);
 
-  const handleMethodSubmit = (id: string) => {
+  const handleMethodSubmit = useCallback((id: string) => {
     const selectedItem = listData.find(item => item.id === id);
     if (selectedItem) {
       setItemChange({id: selectedItem.id, name: selectedItem.name});
     } else {
       Alert.alert('Không tìm thấy error');
     }
-  };
+  }, []);
 
   const onChangeName = useCallback((value: string) => {
     setItemChange(prevState => {
@@ -70,38 +60,35 @@ const IterationMethodsScreen = () => {
     setIdInput(value);
   }, []);
 
-  const handleChangeMethodName = useCallback(
-    (id: string) => {
-      setData(prevState =>
-        prevState.map(item =>
-          item.id === id ? {...item, name: itemChange?.name || ''} : item,
-        ),
-      );
-    },
-    [itemChange],
-  );
+  const handleChangeMethodName = useCallback((id: string) => {
+    setData(prevState =>
+      prevState.map(item =>
+        item.id === id ? {...item, name: itemChange?.name || ''} : item,
+      ),
+    );
+  }, []);
 
-  const handleButtonClicked = useCallback(
-    (id: string) => {
-      return ItemClicked.find(item => item.id === id)?.status || false;
-    },
-    [ItemClicked],
-  );
+  const handleButtonClicked = useCallback((id: string) => {
+    return ItemClicked.find(item => item.id === id)?.status || false;
+  }, []);
 
   useEffect(() => {
     const isValidName = /^[a-zA-Z\s]*$/.test(itemChange?.name || '');
     setNameError(!isValidName || itemChange?.name.trim() === '');
   }, [itemChange]);
 
+  console.log('nameError:', nameError);
+
   const renderItem = useCallback(
     ({item}) => (
-      <MemoizedButtonMethod
-        method={item}
-        onPress={() => handleMethodSubmit(item.id)}
+      <ButtonMethod
+        data={item}
+        // () => handleMethodSubmit(id: string) lỗi cũ khiến component re-render
+        onPress={handleMethodSubmit}
         buttonClicked={handleButtonClicked(item.id)}
       />
     ),
-    [handleMethodSubmit, handleButtonClicked],
+    [],
   );
 
   const handleKey = useCallback(
@@ -147,7 +134,6 @@ const IterationMethodsScreen = () => {
       <View style={styles.list}>
         <FlatList
           data={listData}
-          numColumns={2}
           keyExtractor={handleKey}
           renderItem={renderItem}
         />
@@ -156,7 +142,7 @@ const IterationMethodsScreen = () => {
   );
 };
 
-export default memo(IterationMethodsScreen);
+export default IterationMethodsScreen;
 
 const styles = StyleSheet.create({
   container: {

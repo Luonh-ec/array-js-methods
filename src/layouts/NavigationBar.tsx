@@ -28,20 +28,20 @@ function NavigationBar() {
         },
       }}>
       <Tab.Screen
-        name="Basic"
-        component={BasicMethodScreen}
-        options={{
-          tabBarIcon: ({color}) => (
-            <Feather name="home" color={color} size={26} />
-          ),
-        }}
-      />
-      <Tab.Screen
         name="Iteration"
         component={IterationMethodScreen}
         options={{
           tabBarIcon: ({color}) => (
             <Octicons name="iterations" color={color} size={26} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Basic"
+        component={BasicMethodScreen}
+        options={{
+          tabBarIcon: ({color}) => (
+            <Feather name="home" color={color} size={26} />
           ),
         }}
       />
